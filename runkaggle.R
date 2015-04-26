@@ -100,16 +100,30 @@ blogTest$Popular = NULL # to be predicted
 ### 4. Model 1: Classification Tree(CART)
 # 4.1 Build CART model
 modelCART = rpart(Popular ~ . - UniqueID, data=blogTrain,method='class')
+
 # 4.2 Make predictions on training data
 predictCART = predict(modelCART, data=blogTrain, type='class')
 confusionCART = table(blogTrain$Popular, predictCART) # training set accuracy 0.906
 trainAccuracyCART = (confusionCART[1,1]+confusionCART[2,2])/sum(confusionCART)
+
 # 4.3 Write predictions into CSV file "predictCART.csv"
-resultCART = as.data.frame(blogTest$UniqueID)
-colnames(resultCART)[1] = "UniqueID"
-resultCART$Probability1 = predict(modelCART, newdata=blogTest)[,2]
-write.table(resultCART, "predictCART.csv", sep=",",row.names=FALSE)
+predictCART2 = predict(modelCART, newdata=blogTrain, type='class')
+submissionCART = data.frame(UniqueID=blogTest$UniqueID, Probability1=predictCART2)
+write.csv(submissionCART, "submissionCART.csv", row.names=FALSE)
+
+
 
 ### 5. Model 2: Random Forest
+# 5.1 Build RF model
+modelRF = randomForest(Popular ~ . - UniqueID, data=blogTrain, nodesize=25, ntree=200)
 
+# 5.2 Make predictions on training data
+predictRF = predict(modelRF, data=blogTrain)
+confusionRF = table(blogTrain$Popular, predictRF > 0.5)
+trainAccuracyRF = (confusionRF[1,1]+ confusionRF[2,2])/sum(confusionRF)
+trainAccuracyRF
+# 5.3 Write predictions into CSV file "submissionRF.csv"
+predictRF2 = predict(modelRF, newdata=blogTest,type='class')
+submissionRF = data.frame(UniqueID=blogTest$UniqueID, Probability1=predictRF2)
+write.csv(submissionRF, "submissionRF.csv", row.names=FALSE)
 
